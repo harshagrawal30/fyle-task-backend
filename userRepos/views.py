@@ -7,33 +7,22 @@ from .models import user
 from rest_framework.response import Response
 import requests
 import json
-# def index(request):
-#     def list(self,request):
 
 class Userviewlist(viewsets.ViewSet):
     queryset = user.objects.all()
     serializer_class = userSerializer
     
     def list(self):
-        # print(self)
-        print(self,'print')
         queryset = user.objects.all()
         serializer_class = userSerializer(queryset,many=True)
         return Response(serializer_class.data)
-        # return queryset
     
 
     def retrieve(self,request,*args,**kwargs):
         params = kwargs
-        # isuser = user.objects.filter()
-        # queryset = user.objects.filter(username = params['pk'])
-        # if queryset is not None:
-        #     serializer_class = userSerializer(queryset,many=True)
-        print(params['pk'])
         responseData={}
         fetchurl = 'https://api.github.com/users/'+params['pk']
         data = requests.get(fetchurl)
-        print(data.text)
         jsonData = json.loads(data.text)
         if 'repos_url' in jsonData:
             repositories = requests.get(jsonData['repos_url'])
@@ -58,7 +47,9 @@ class Userviewlist(viewsets.ViewSet):
 
 
         if 'message' in jsonData:
-            print('error')
-            return Response([{'status':'notfound','user_repositories':[],'id':None,'name':None,'avatar':None,'bio':None,'location':None,'username':None,'twitter':None}])
+            if jsonData['message'] == 'Not Found':
+                return Response([{'status':'notfound','user_repositories':[],'id':None,'name':None,'avatar':None,'bio':None,'location':None,'username':None,'twitter':None}])
+            else:
+                return Response([{'status':'apilimit','user_repositories':[],'id':None,'name':None,'avatar':None,'bio':None,'location':None,'username':None,'twitter':None}])
         else:
             return Response([responseData])
