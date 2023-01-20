@@ -23,33 +23,35 @@ class Userviewlist(viewsets.ViewSet):
         responseData={}
         fetchurl = 'https://api.github.com/users/'+params['pk']
         data = requests.get(fetchurl)
-        jsonData = json.loads(data.text)
-        if 'repos_url' in jsonData:
-            repositories = requests.get(jsonData['repos_url'])
-            repos= json.loads(repositories.text)
+        if data.status_code == 200:
+            jsonData = json.loads(data.text)
+            if 'repos_url' in jsonData:
+                repositories = requests.get(jsonData['repos_url'])
+                repos= json.loads(repositories.text)
 
-            reposData = []
-            for repo in repos:
-                langFetch = requests.get(repo['languages_url'])
-                languagedata = json.loads(langFetch.text)
-                languages =[]
-                for i in languagedata:
-                    languages.append(i)
-                reposData.append({'id':repo['id'],'name':repo['name'],'description':repo['description'],'repository_language':languages,'repo_url':repo['html_url']})
-
-
-
-            responseData = {'status':'success','id':jsonData['id'],'name':jsonData['name'],'username':jsonData['login'],
-            'avatar':jsonData['avatar_url'],'location':jsonData['location'],
-            'bio':jsonData['bio'],'twitter':jsonData['twitter_username'],
-            'user_repositories':reposData
-            }
+                reposData = []
+                for repo in repos:
+                    langFetch = requests.get(repo['languages_url'])
+                    languagedata = json.loads(langFetch.text)
+                    languages =[]
+                    for i in languagedata:
+                        languages.append(i)
+                    reposData.append({'id':repo['id'],'name':repo['name'],'description':repo['description'],'repository_language':languages,'repo_url':repo['html_url']})
 
 
-        if 'message' in jsonData:
-            if jsonData['message'] == 'Not Found':
-                return Response([{'status':'notfound','user_repositories':[],'id':None,'name':None,'avatar':None,'bio':None,'location':None,'username':None,'twitter':None}])
+
+                responseData = {'status':'success','id':jsonData['id'],'name':jsonData['name'],'username':jsonData['login'],
+                'avatar':jsonData['avatar_url'],'location':jsonData['location'],
+                'bio':jsonData['bio'],'twitter':jsonData['twitter_username'],
+                'user_repositories':reposData
+                }
+
+            if 'message' in jsonData:
+                if jsonData['message'] == 'Not Found':
+                    return Response([{'status':'notfound','user_repositories':[],'id':None,'name':None,'avatar':None,'bio':None,'location':None,'username':None,'twitter':None}])
+                else:
+                    return Response([{'status':'apilimit','user_repositories':[],'id':None,'name':None,'avatar':None,'bio':None,'location':None,'username':None,'twitter':None}])
             else:
-                return Response([{'status':'apilimit','user_repositories':[],'id':None,'name':None,'avatar':None,'bio':None,'location':None,'username':None,'twitter':None}])
+                return Response([responseData])
         else:
-            return Response([responseData])
+            return Response({'status':'error'})
