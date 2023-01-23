@@ -8,3 +8,4 @@
 <li>Make migrations using "python manage.py makemigrations" and then "python manage.py migrate" command. (Optional to setup database)</li>
 <li>Finally, Start app using "python manage.py runserver"</li>
 <p>Now go to url "http://localhost:8000/user/api/user/{{username}}" to see the fetched result.
+<li>To run test, run "python manage.py test"</li>
